@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import QuartzCore
 
 class ViewController: UIViewController {
 
@@ -13,11 +14,15 @@ class ViewController: UIViewController {
     @IBOutlet weak var targetLabel: UILabel!
     @IBOutlet weak var scoreLabel: UILabel!
     @IBOutlet weak var roundsLabel: UILabel!
+    @IBOutlet weak var timerLabel: UILabel!
+    @IBOutlet weak var maxScoreLabel: UILabel!
     
     var currentValue: Int = 0
     var targetValue: Int = 0
     var roundValue: Int = 0
     var score: Int = 0
+    var time: Int = 0
+    var timer: Timer?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -59,12 +64,38 @@ class ViewController: UIViewController {
         self.targetLabel.text = "\(self.targetValue)"
         self.scoreLabel.text = "\(self.score)"
         self.roundsLabel.text = "\(self.roundValue)"
+        self.timerLabel.text = "\(self.time)"
     }
     
     func resetGame(){
         self.score = 0
         self.roundValue = 0
+        self.time = 60
+        
+        let currentMaxScore = UserDefaults.standard.integer(forKey: "max")
+        self.maxScoreLabel.text = "\(currentMaxScore)"
+        
+        if(self.timer != nil) { self.timer?.invalidate() }
+        
+        self.timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(tick), userInfo: nil, repeats: true)
+        
         self.startNewRound()
+    }
+    
+    @objc func tick(){
+        self.time -= 1
+        self.timerLabel.text = "\(self.time)"
+        if(self.time <= 0){
+            
+            let max = UserDefaults.standard.integer(forKey: "max")
+            
+            if(max < self.score) {
+                UserDefaults.standard.set(self.score, forKey: "max")
+            }
+            
+            self.resetGame()
+            self.updateLabes()
+        }
     }
     
     @IBAction func showAlert(_ sender: UIButton) {
@@ -116,6 +147,7 @@ class ViewController: UIViewController {
     @IBAction func newGame(_ sender: UIButton) {
         self.resetGame()
         self.updateLabes()
+        
     }
     
 }
